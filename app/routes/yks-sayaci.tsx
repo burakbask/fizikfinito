@@ -7,7 +7,7 @@ export const meta: MetaFunction = () => ([
     title: '2025 TYT - Kaç Gün Kaldı? | TYT Geri Sayım | TYT Tarihi',
     description: '2025 TYT için geri sayım başladı. TYT sınavı ne zaman? Temel Yeterlilik Testi tarih ve detayları öğrenin.',
     keywords: '2025 TYT, TYT Sayaç, TYT Geri Sayım, TYT Ne Zaman, TYT Sınav Tarihi',
-    'og:title': '2025 TYT - Kaç Gün Kaldı? | TYT Tarihi ve Detaylar',
+    'og:title': '2025 TYT - Kaç Gün Kaldı? | TYT Tarihi ve Detayları',
     'og:description': '2025 TYT için geri sayım başladı. Temel Yeterlilik Testi sınavı detaylarını öğrenin.',
     'og:type': 'website',
     'og:url': 'https://yourwebsite.com/tyt-sayac',
