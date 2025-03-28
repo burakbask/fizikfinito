@@ -1,3 +1,4 @@
+//root.tsx
 import {
   Links,
   Meta,
@@ -52,7 +53,7 @@ export default function Root() {
       <body className="flex flex-col min-h-screen bg-gray-100">
         <header>
           <nav className="bg-white p-4 shadow-md">
-            <div className="container mx-auto flex items-center justify-between">
+            <div className="container mx-auto flex items-center justify-center">
               <Link to="/" className="flex items-center">
                 <img
                   src="https://cdn.zeduva.com/2024/12/fizikfinitologo.png"
@@ -61,116 +62,8 @@ export default function Root() {
                 />
                 <span className="text-gray-900 text-2xl font-bold ml-4">Fizikfinito</span>
               </Link>
-              <button className="md:hidden text-gray-900 focus:outline-none transition-transform duration-500 ease-in-out" onClick={() => {
-                const menu = document.getElementById('mobile-menu');
-                const overlay = document.getElementById('menu-overlay');
-                if (menu.classList.contains('-translate-x-full')) {
-                  menu.classList.remove('-translate-x-full');
-                  overlay.classList.remove('hidden');
-                } else {
-                  menu.classList.add('-translate-x-full');
-                  overlay.classList.add('hidden');
-                }
-              }}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-              </button>
-              <ul id="mobile-menu" className="transform transition-transform duration-500 ease-in-out -translate-x-full fixed inset-0 bg-white p-8 z-50 space-y-4 text-lg font-medium md:hidden">
-                <li>
-                  <Link to="/" className="text-gray-700 hover:text-blue-600 transition duration-300 ease-in-out" onClick={() => {
-                    document.getElementById('mobile-menu').classList.add('-translate-x-full');
-                    document.getElementById('menu-overlay').classList.add('hidden');
-                  }}>
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/takvim" className="text-gray-700 hover:text-blue-600 transition duration-300 ease-in-out" onClick={() => {
-                    document.getElementById('mobile-menu').classList.add('-translate-x-full');
-                    document.getElementById('menu-overlay').classList.add('hidden');
-                  }}>
-                    Takvim
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/kitaplarimiz" className="text-gray-700 hover:text-blue-600 transition duration-300 ease-in-out" onClick={() => {
-                    document.getElementById('mobile-menu').classList.add('-translate-x-full');
-                    document.getElementById('menu-overlay').classList.add('hidden');
-                  }}>
-                    Tüm Kitaplarımız
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/yks-sayaci" className="text-gray-700 hover:text-blue-600 transition duration-300 ease-in-out" onClick={() => {
-                    document.getElementById('mobile-menu').classList.add('-translate-x-full');
-                    document.getElementById('menu-overlay').classList.add('hidden');
-                  }}>
-                    Tüm Kitaplarımız
-                  </Link>
-                </li>
-                <li>
-                  <button className="text-gray-900 focus:outline-none" onClick={() => {
-                    const menu = document.getElementById('mobile-menu');
-                    const overlay = document.getElementById('menu-overlay');
-                    menu.classList.add('-translate-x-full');
-                    overlay.classList.add('hidden');
-                  }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </li>
-              </ul>
-              <ul className="hidden md:flex space-x-8 text-lg font-medium">
-                <li>
-                  <Link to="/" className="text-gray-700 hover:text-blue-600 transition duration-300 ease-in-out">
-                    Ana Sayfa
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/takvim" className="text-gray-700 hover:text-blue-600 transition duration-300 ease-in-out">
-                    Takvim
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/kitaplarimiz" className="text-gray-700 hover:text-blue-600 transition duration-300 ease-in-out">
-                    Tüm Kitaplarımız
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/yks-sayaci" className="text-gray-700 hover:text-blue-600 transition duration-300 ease-in-out">
-                    YKS Sayacı
-                  </Link>
-                </li>
-              </ul>
-              <div className="flex items-center space-x-4">
-                {user ? (
-                  <Link to="/profile" className="text-gray-900 text-lg font-semibold hover:text-blue-600 transition duration-300 ease-in-out">
-                    <span className='whitespace-nowrap text-sm'>Hoşgeldin, {user.displayName.split(' ')[0]}</span>
-                  </Link>
-                ) : (
-                  <Link
-                    to="/google"
-                    className="flex items-center bg-blue-600 text-white px-2 py-1 rounded-lg font-bold text-sm transition duration-300 ease-in-out hover:bg-blue-700"
-                  >
-                    <img
-                      src="https://cdn-icons-png.flaticon.com/512/2504/2504914.png"
-                      alt="Google ile Giriş Yap"
-                      className="h-4 w-4 mr-1"
-                    />
-                    Giriş Yap
-                  </Link>
-                )}
-              </div>
             </div>
           </nav>
-          <div id="menu-overlay" className="fixed inset-0 bg-black bg-opacity-50 hidden z-40 md:hidden" onClick={() => {
-            const menu = document.getElementById('mobile-menu');
-            const overlay = document.getElementById('menu-overlay');
-            menu.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-          }}></div>
         </header>
         <div className="flex flex-1">
           <aside className="md:fixed left-0 top-1/2 transform -translate-y-1/2 bg-transparent p-6 hidden md:block">
