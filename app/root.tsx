@@ -26,7 +26,7 @@ export const links: LinksFunction = () => [
   {
     rel: "icon",
     type: "image/png",
-    href: "/fizikfinitologo.png",
+    href: "https://cdn.zeduva.com/2024/12/fizikfinitologo.png",
   },
 ];
 
@@ -104,7 +104,7 @@ export default function Root() {
             <div className="container mx-auto flex items-center justify-between">
               <Link to="/" className="flex items-center">
                 <img
-                  src="/fizikfinitologo.png"
+                  src="https://cdn.zeduva.com/2024/12/fizikfinitologo.png"
                   alt="Fizikfinito Logo"
                   className="h-10 w-10 rounded-full"
                 />
