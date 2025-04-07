@@ -49,6 +49,9 @@ export const loader: LoaderFunction = async () => {
   const konular = konularRes.data || konularRes;
   const deneyler = deneylerRes.data || deneylerRes;
 
+  // "Tüm Kategoriler" başlığını en başa ekliyoruz
+  kategoriler.unshift({ kategoriler: "Tüm Kategoriler" });
+
   return json<LoaderData>({ kategoriler, altKategoriler, konular, deneyler });
 };
 
@@ -101,13 +104,15 @@ export default function ExperimentPage() {
   const { kategoriler, altKategoriler, konular, deneyler } = useLoaderData<LoaderData>();
   const location = useLocation();
 
+  // Kullanıcı etkileşimini takip etmek için state
+  const [hasInteracted, setHasInteracted] = useState(false);
+
   // Bölüm referansları
   const altCategoriesRef = useRef<HTMLDivElement>(null);
   const topicsRef = useRef<HTMLDivElement>(null);
   const experimentDetailsRef = useRef<HTMLDivElement>(null);
 
-  // URL yolundaki segmentler (URL başlangıçta okunuyor):
-  // Beklenen: /[kategori]/[altKategori]/[konu]/[deney]
+  // URL segmentlerini ayıkla
   const pathSegments = location.pathname.split("/").filter(Boolean);
   const initialCategory = pathSegments[0]
     ? decodeURIComponent(pathSegments[0])
@@ -121,10 +126,13 @@ export default function ExperimentPage() {
   // Seçili kategori
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(initialCategory);
 
-  // Seçili alt kategori
-  const filteredAltKategoriler = altKategoriler.filter(
-    (alt) => alt.kategori === selectedCategoryId
-  );
+  // Alt kategorileri filtrele
+  const filteredAltKategoriler =
+    selectedCategoryId === "Tüm Kategoriler"
+      ? altKategoriler
+      : altKategoriler.filter((alt) => alt.kategori === selectedCategoryId);
+
+  // Varsayılan alt kategori
   const defaultAltKategori = initialAltKategoriSegment
     ? altKategoriler.find(
         (ak) =>
@@ -132,6 +140,7 @@ export default function ExperimentPage() {
           ak.kategori === selectedCategoryId
       )
     : null;
+
   const [selectedAltKategori, setSelectedAltKategori] = useState<Alt_Kategoriler | null>(
     defaultAltKategori || (filteredAltKategoriler.length > 0 ? filteredAltKategoriler[0] : null)
   );
@@ -150,11 +159,20 @@ export default function ExperimentPage() {
   const [contentType, setContentType] = useState<ContentType>("experiment");
   const [readMore, setReadMore] = useState(false);
 
-  // Kategori değiştiğinde, ilgili alt kategoriyi sıfırlayalım.
+  // --- Etkileşim olduğunda hasInteracted true olsun ---
+  const onUserInteraction = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
+    }
+  };
+
+  // Kategori değişince, ilgili alt kategoriyi sıfırla
   useEffect(() => {
-    const relatedAltKategoriler = altKategoriler.filter(
-      (alt) => alt.kategori === selectedCategoryId
-    );
+    const relatedAltKategoriler =
+      selectedCategoryId === "Tüm Kategoriler"
+        ? altKategoriler
+        : altKategoriler.filter((alt) => alt.kategori === selectedCategoryId);
+
     if (
       !selectedAltKategori ||
       !relatedAltKategoriler.some(
@@ -166,8 +184,9 @@ export default function ExperimentPage() {
     }
   }, [selectedCategoryId, altKategoriler, selectedAltKategori]);
 
-  // Seçimler state üzerinde güncellendiğinde URL'i pushState ile güncelleyelim.
+  // Kullanıcı etkileşimi gerçekleşmişse URL güncellensin
   useEffect(() => {
+    if (!hasInteracted) return;
     let newPath = "/";
     if (selectedCategoryId) {
       newPath += `${slugify(selectedCategoryId)}`;
@@ -182,36 +201,53 @@ export default function ExperimentPage() {
     if (newPath !== location.pathname) {
       window.history.pushState(null, "", newPath);
     }
-  }, [selectedCategoryId, selectedAltKategori, selectedExperiment, location.pathname]);
+  }, [selectedCategoryId, selectedAltKategori, selectedExperiment, location.pathname, hasInteracted]);
 
-  // İçerik değişince "readMore" durumunu sıfırlayalım.
+  // Kullanıcı etkileşimi gerçekleşmişse scroll yap
   useEffect(() => {
-    setReadMore(false);
-  }, [contentType]);
-
-  // Seçimlere bağlı olarak ilgili bölümlere scroll yapalım.
-  useEffect(() => {
+    if (!hasInteracted) return;
     if (altCategoriesRef.current) {
       altCategoriesRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, hasInteracted]);
 
   useEffect(() => {
+    if (!hasInteracted) return;
     if (selectedAltKategori && topicsRef.current) {
       topicsRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [selectedAltKategori]);
+  }, [selectedAltKategori, hasInteracted]);
 
   useEffect(() => {
+    if (!hasInteracted) return;
     if (selectedExperiment && experimentDetailsRef.current) {
       experimentDetailsRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [selectedExperiment]);
+  }, [selectedExperiment, hasInteracted]);
 
-  // Butonlarda event.preventDefault() ve type="button" kullanıyoruz.
+  // Kategori butonu tıklama
   const handleCategoryClick = (event: React.MouseEvent<HTMLButtonElement>, categoryId: string) => {
     event.preventDefault();
+    onUserInteraction();
     setSelectedCategoryId(categoryId);
+  };
+
+  // Alt kategori butonu tıklama
+  const handleAltKategoriClick = (event: React.MouseEvent<HTMLButtonElement>, altKategori: Alt_Kategoriler) => {
+    event.preventDefault();
+    onUserInteraction();
+    setSelectedAltKategori(altKategori);
+    setSelectedExperiment(null);
+    if (topicsRef.current) {
+      topicsRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Deney butonuna tıklama
+  const handleDeneyClick = (event: React.MouseEvent<HTMLButtonElement>, deney: Deneyler) => {
+    event.preventDefault();
+    onUserInteraction();
+    setSelectedExperiment(selectedExperiment?.deney_adi === deney.deney_adi ? null : deney);
   };
 
   let fullText = "";
@@ -251,214 +287,348 @@ export default function ExperimentPage() {
         }}
       />
       <div className="flex flex-col items-center text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-950 min-h-screen">
-        {/* Ana Kategori (Turuncu) */}
+        {/* Üstteki Kategori Butonları (Turuncu) - "Tüm Kategoriler" hariç */}
         <div className="p-4 md:p-8 bg-gray-100 dark:bg-gray-800 shadow-sm rounded-3xl w-full max-w-5xl text-center">
           <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-            {kategoriler.map((kategori) => (
-              <button
-                type="button"
-                key={kategori.kategoriler}
-                onClick={(e) => handleCategoryClick(e, kategori.kategoriler)}
-                className={`p-3 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
-                  selectedCategoryId === kategori.kategoriler
-                    ? "bg-orange-500 scale-110 text-white"
-                    : "bg-orange-200 hover:bg-orange-300 active:bg-orange-400 text-orange-900"
-                }`}
-              >
-                {kategori.kategoriler}
-              </button>
-            ))}
+            {kategoriler
+              .filter((kategori) => kategori.kategoriler !== "Tüm Kategoriler")
+              .map((kategori) => (
+                <button
+                  type="button"
+                  key={kategori.kategoriler}
+                  onClick={(e) => handleCategoryClick(e, kategori.kategoriler)}
+                  className={`p-3 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                    selectedCategoryId === kategori.kategoriler
+                      ? "bg-orange-500 scale-110 text-white"
+                      : "bg-orange-200 hover:bg-orange-300 active:bg-orange-400 text-orange-900"
+                  }`}
+                >
+                  {kategori.kategoriler}
+                </button>
+              ))}
           </div>
         </div>
 
-        {/* Alt Kategori (Pembe) */}
-        {selectedCategoryId && (
+        {/*
+          Eğer "Tüm Kategoriler" seçiliyse, yani siteye ilk girildiğinde varsayılan olarak "Tüm Kategoriler" aktif.
+          Bu kısımda hiyerarşik liste, "Tüm Kategoriler" içeriğini gösterir.
+        */}
+        {selectedCategoryId === "Tüm Kategoriler" && (
           <div
-            ref={altCategoriesRef}
-            className="p-4 md:p-6 bg-gray-50 dark:bg-gray-800 shadow-sm rounded-3xl w-full max-w-5xl mt-4 md:mt-6"
+            className="p-4 md:p-6 bg-white dark:bg-gray-900 shadow-sm rounded-3xl w-full max-w-5xl mt-4 md:mt-6 overflow-x-auto"
+            ref={topicsRef}
           >
-            {filteredAltKategoriler.length > 0 ? (
-              <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-                {filteredAltKategoriler.map((altKategori) => (
-                  <button
-                    type="button"
-                    key={altKategori.altkategoriler}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setSelectedAltKategori(altKategori);
-                      setSelectedExperiment(null);
-                      if (topicsRef.current) {
-                        topicsRef.current.scrollIntoView({ behavior: "smooth" });
-                      }
-                    }}
-                    className={`p-3 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
-                      selectedAltKategori &&
-                      selectedAltKategori.altkategoriler === altKategori.altkategoriler
-                        ? "bg-pink-500 scale-110 text-white"
-                        : "bg-pink-200 hover:bg-pink-300 active:bg-pink-400 text-pink-900"
-                    }`}
-                  >
-                    {altKategori.altkategoriler}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center">Alt kategori bulunamadı.</p>
-            )}
+            {kategoriler
+              .filter((kat) => kat.kategoriler !== "Tüm Kategoriler")
+              .map((mainCat) => {
+                // Bu ana kategoriye bağlı alt kategoriler:
+                const altsForMain = altKategoriler.filter(
+                  (altKat) => altKat.kategori === mainCat.kategoriler
+                );
+                if (altsForMain.length === 0) return null;
+
+                return (
+                  <div key={mainCat.kategoriler} className="mb-10">
+                    {/* Ana Kategori Başlığı */}
+                    <h2 className="text-xl md:text-2xl font-bold mb-4 text-orange-800 border-l-4 border-orange-300 pl-2">
+                      {mainCat.kategoriler}
+                    </h2>
+
+                    {altsForMain.map((altKat) => {
+                      // Alt kategoriye bağlı konular:
+                      const filteredTopics = konular.filter(
+                        (topic) => topic.altkategori_adi === altKat.altkategoriler
+                      );
+                      if (filteredTopics.length === 0) return null;
+
+                      return (
+                        <div key={altKat.altkategoriler} className="mb-8">
+                          {/* Alt Kategori Başlığı */}
+                          <h3 className="text-lg md:text-xl font-bold mb-4 text-pink-600 border-l-4 border-pink-300 pl-2">
+                            {altKat.altkategoriler}
+                          </h3>
+
+                          <table className="w-full border-collapse border border-gray-300 dark:border-gray-600 text-center rounded-xl overflow-hidden text-xs md:text-base dark:text-gray-100">
+                            <tbody>
+                              {filteredTopics.map((topic) => {
+                                const topicDeneyler = deneyler.filter(
+                                  (deney) => deney.konu_adi === topic.konu_adi
+                                );
+                                return (
+                                  <React.Fragment key={topic.konu_adi}>
+                                    <tr className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all shadow-sm rounded-lg overflow-hidden">
+                                      <td className="border border-gray-300 dark:border-gray-600 p-3 md:p-5 font-bold bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-700 dark:to-amber-700 shadow-sm rounded-l-lg text-orange-800 dark:text-orange-300">
+                                        {topic.konu_adi}
+                                      </td>
+                                      <td className="border border-gray-300 dark:border-gray-600 p-2 md:p-3">
+                                        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                                          {topicDeneyler.map((deney) => (
+                                            <button
+                                              type="button"
+                                              key={deney.deney_adi}
+                                              onClick={(e) => handleDeneyClick(e, deney)}
+                                              className={`p-2 md:p-3 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                                                selectedExperiment?.deney_adi === deney.deney_adi
+                                                  ? "bg-fuchsia-500 scale-110 text-white"
+                                                  : "bg-fuchsia-200 hover:bg-fuchsia-300 active:bg-fuchsia-400 text-fuchsia-900"
+                                              }`}
+                                            >
+                                              {deney.deney_adi}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                    {selectedExperiment &&
+                                      topicDeneyler.some(
+                                        (d) => d.deney_adi === selectedExperiment.deney_adi
+                                      ) && (
+                                        <tr>
+                                          <td colSpan={2}>
+                                            <div
+                                              ref={experimentDetailsRef}
+                                              className="p-6 bg-gray-50 dark:bg-gray-800 shadow-sm rounded-3xl w-full max-w-4xl mx-auto"
+                                            >
+                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-3xl bg-gray-100 dark:bg-gray-800 shadow-sm">
+                                                  <div className="flex flex-wrap gap-4 mt-4 justify-center">
+                                                    <button
+                                                      type="button"
+                                                      onClick={(e) => {
+                                                        e.preventDefault();
+                                                        onUserInteraction();
+                                                        setContentType("experiment");
+                                                      }}
+                                                      className={`p-3 rounded-lg transition-all duration-300 ${
+                                                        contentType === "experiment"
+                                                          ? "bg-fuchsia-500 scale-105 text-white"
+                                                          : "bg-fuchsia-200 hover:bg-fuchsia-300 active:bg-fuchsia-400 text-fuchsia-900"
+                                                      }`}
+                                                    >
+                                                      Deney
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={(e) => {
+                                                        e.preventDefault();
+                                                        onUserInteraction();
+                                                        setContentType("materials");
+                                                      }}
+                                                      className={`p-3 rounded-lg transition-all duration-300 ${
+                                                        contentType === "materials"
+                                                          ? "bg-rose-500 scale-105 text-white"
+                                                          : "bg-rose-200 hover:bg-rose-300 active:bg-rose-400 text-rose-900"
+                                                      }`}
+                                                    >
+                                                      Malzemeler
+                                                    </button>
+                                                  </div>
+                                                  <div className="mt-4 font-bold text-lg text-left dark:text-gray-100">
+                                                    {contentType === "materials"
+                                                      ? materialsDisplayText.split("\n").map((line, idx) => (
+                                                          <p key={idx}>
+                                                            <span className="mr-2">•</span>
+                                                            {line}
+                                                          </p>
+                                                        ))
+                                                      : displayText || "İçerik bulunamadı."}
+                                                  </div>
+                                                  {fullText.length > 250 && (
+                                                    <button
+                                                      type="button"
+                                                      onClick={(e) => {
+                                                        e.preventDefault();
+                                                        setReadMore(!readMore);
+                                                      }}
+                                                      className="mt-2 text-orange-600 font-semibold hover:text-orange-700 active:text-orange-800"
+                                                    >
+                                                      {readMore ? "Kapat" : "Devamını Oku"}
+                                                    </button>
+                                                  )}
+                                                </div>
+                                                <div className="flex justify-center w-full md:w-auto">
+                                                  {embedVideoUrl ? (
+                                                    <iframe
+                                                      className="w-[360px] h-[640px] border rounded-3xl shadow-sm"
+                                                      src={embedVideoUrl}
+                                                      title="Deney Videosu"
+                                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                      allowFullScreen
+                                                    ></iframe>
+                                                  ) : (
+                                                    <div className="w-[360px] h-[640px] border rounded-3xl shadow-sm flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-center p-4">
+                                                      <p className="font-semibold">
+                                                        Çok yakında eklenecektir. Lütfen beklemede kalın
+                                                      </p>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      )}
+                                  </React.Fragment>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
           </div>
         )}
 
-        {/* Konular ve Deneyler */}
-        {selectedAltKategori &&
-          (() => {
-            const filteredTopics = konular.filter(
-              (topic) => topic.altkategori_adi === selectedAltKategori.altkategoriler
-            );
-            if (filteredTopics.length === 0) {
-              return (
-                <div className="p-4 md:p-6 bg-white dark:bg-gray-900 shadow-sm rounded-3xl w-full max-w-5xl mt-4 md:mt-6">
-                  <p className="text-center">Seçilen alt kategori ile ilgili konu bulunamadı.</p>
-                </div>
-              );
-            }
+        {/*
+          "Tüm Kategoriler" seçili DEĞİLSE, orijinal kodunuzdaki (tek alt kategori) yapı aynen kalır.
+        */}
+        {selectedCategoryId !== "Tüm Kategoriler" && selectedAltKategori && (() => {
+          const filteredTopics = konular.filter(
+            (topic) => topic.altkategori_adi === selectedAltKategori.altkategoriler
+          );
+          if (filteredTopics.length === 0) {
             return (
-              <div
-                ref={topicsRef}
-                className="p-4 md:p-6 bg-white dark:bg-gray-900 shadow-sm rounded-3xl w-full max-w-5xl mt-4 md:mt-6 overflow-x-auto"
-              >
-                <table className="w-full border-collapse border border-gray-300 dark:border-gray-600 text-center rounded-xl overflow-hidden text-xs md:text-base dark:text-gray-100">
-                  <tbody>
-                    {filteredTopics.map((topic) => {
-                      const topicDeneyler = deneyler.filter(
-                        (deney) => deney.konu_adi === topic.konu_adi
-                      );
-                      return (
-                        <React.Fragment key={topic.konu_adi}>
-                          <tr className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all shadow-sm rounded-lg overflow-hidden">
-                            <td className="border border-gray-300 dark:border-gray-600 p-3 md:p-5 font-bold bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-700 dark:to-amber-700 shadow-sm rounded-l-lg text-orange-800 dark:text-orange-300">
-                              {topic.konu_adi}
-                            </td>
-                            <td className="border border-gray-300 dark:border-gray-600 p-2 md:p-3">
-                              <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                                {topicDeneyler.map((deney) => (
-                                  <button
-                                    type="button"
-                                    key={deney.deney_adi}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      setSelectedExperiment(
-                                        selectedExperiment?.deney_adi === deney.deney_adi ? null : deney
-                                      );
-                                    }}
-                                    className={`p-2 md:p-3 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
-                                      selectedExperiment?.deney_adi === deney.deney_adi
-                                        ? "bg-fuchsia-500 scale-110 text-white"
-                                        : "bg-fuchsia-200 hover:bg-fuchsia-300 active:bg-fuchsia-400 text-fuchsia-900"
-                                    }`}
-                                  >
-                                    {deney.deney_adi}
-                                  </button>
-                                ))}
-                              </div>
-                            </td>
-                          </tr>
-                          {selectedExperiment &&
-                            topicDeneyler.some(
-                              (deney) => deney.deney_adi === selectedExperiment.deney_adi
-                            ) && (
-                              <tr>
-                                <td colSpan={2}>
-                                  <div
-                                    ref={experimentDetailsRef}
-                                    className="p-6 bg-gray-50 dark:bg-gray-800 shadow-sm rounded-3xl w-full max-w-4xl mx-auto"
-                                  >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                      <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-3xl bg-gray-100 dark:bg-gray-800 shadow-sm">
-                                        <div className="flex flex-wrap gap-4 mt-4 justify-center">
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              setContentType("experiment");
-                                            }}
-                                            className={`p-3 rounded-lg transition-all duration-300 ${
-                                              contentType === "experiment"
-                                                ? "bg-fuchsia-500 scale-105 text-white"
-                                                : "bg-fuchsia-200 hover:bg-fuchsia-300 active:bg-fuchsia-400 text-fuchsia-900"
-                                            }`}
-                                          >
-                                            Deney
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              setContentType("materials");
-                                            }}
-                                            className={`p-3 rounded-lg transition-all duration-300 ${
-                                              contentType === "materials"
-                                                ? "bg-rose-500 scale-105 text-white"
-                                                : "bg-rose-200 hover:bg-rose-300 active:bg-rose-400 text-rose-900"
-                                            }`}
-                                          >
-                                            Malzemeler
-                                          </button>
-                                        </div>
-                                        <div className="mt-4 font-semibold text-lg text-left dark:text-gray-100">
-                                          {contentType === "materials" ? (
-                                            materialsDisplayText.split("\n").map((line, idx) => (
+              <div className="p-4 md:p-6 bg-white dark:bg-gray-900 shadow-sm rounded-3xl w-full max-w-5xl mt-4 md:mt-6">
+                <p className="text-center">Seçilen alt kategori ile ilgili konu bulunamadı.</p>
+              </div>
+            );
+          }
+          return (
+            <div
+              ref={topicsRef}
+              className="p-4 md:p-6 bg-white dark:bg-gray-900 shadow-sm rounded-3xl w-full max-w-5xl mt-4 md:mt-6 overflow-x-auto"
+            >
+              <table className="w-full border-collapse border border-gray-300 dark:border-gray-600 text-center rounded-xl overflow-hidden text-xs md:text-base dark:text-gray-100">
+                <tbody>
+                  {filteredTopics.map((topic) => {
+                    const topicDeneyler = deneyler.filter(
+                      (deney) => deney.konu_adi === topic.konu_adi
+                    );
+                    return (
+                      <React.Fragment key={topic.konu_adi}>
+                        <tr className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all shadow-sm rounded-lg overflow-hidden">
+                          <td className="border border-gray-300 dark:border-gray-600 p-3 md:p-5 font-bold bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-700 dark:to-amber-700 shadow-sm rounded-l-lg text-orange-800 dark:text-orange-300">
+                            {topic.konu_adi}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 p-2 md:p-3">
+                            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                              {topicDeneyler.map((deney) => (
+                                <button
+                                  type="button"
+                                  key={deney.deney_adi}
+                                  onClick={(e) => handleDeneyClick(e, deney)}
+                                  className={`p-2 md:p-3 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                                    selectedExperiment?.deney_adi === deney.deney_adi
+                                      ? "bg-fuchsia-500 scale-110 text-white"
+                                      : "bg-fuchsia-200 hover:bg-fuchsia-300 active:bg-fuchsia-400 text-fuchsia-900"
+                                  }`}
+                                >
+                                  {deney.deney_adi}
+                                </button>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                        {selectedExperiment &&
+                          topicDeneyler.some(
+                            (deney) => deney.deney_adi === selectedExperiment.deney_adi
+                          ) && (
+                            <tr>
+                              <td colSpan={2}>
+                                <div
+                                  ref={experimentDetailsRef}
+                                  className="p-6 bg-gray-50 dark:bg-gray-800 shadow-sm rounded-3xl w-full max-w-4xl mx-auto"
+                                >
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-3xl bg-gray-100 dark:bg-gray-800 shadow-sm">
+                                      <div className="flex flex-wrap gap-4 mt-4 justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            onUserInteraction();
+                                            setContentType("experiment");
+                                          }}
+                                          className={`p-3 rounded-lg transition-all duration-300 ${
+                                            contentType === "experiment"
+                                              ? "bg-fuchsia-500 scale-105 text-white"
+                                              : "bg-fuchsia-200 hover:bg-fuchsia-300 active:bg-fuchsia-400 text-fuchsia-900"
+                                          }`}
+                                        >
+                                          Deney
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            onUserInteraction();
+                                            setContentType("materials");
+                                          }}
+                                          className={`p-3 rounded-lg transition-all duration-300 ${
+                                            contentType === "materials"
+                                              ? "bg-rose-500 scale-105 text-white"
+                                              : "bg-rose-200 hover:bg-rose-300 active:bg-rose-400 text-rose-900"
+                                          }`}
+                                        >
+                                          Malzemeler
+                                        </button>
+                                      </div>
+                                      <div className="mt-4 font-bold text-lg text-left dark:text-gray-100">
+                                        {contentType === "materials"
+                                          ? materialsDisplayText.split("\n").map((line, idx) => (
                                               <p key={idx}>
                                                 <span className="mr-2">•</span>
                                                 {line}
                                               </p>
                                             ))
-                                          ) : (
-                                            <p>{displayText || "İçerik bulunamadı."}</p>
-                                          )}
+                                          : displayText || "İçerik bulunamadı."}
+                                      </div>
+                                      {fullText.length > 250 && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            setReadMore(!readMore);
+                                          }}
+                                          className="mt-2 text-orange-600 font-semibold hover:text-orange-700 active:text-orange-800"
+                                        >
+                                          {readMore ? "Kapat" : "Devamını Oku"}
+                                        </button>
+                                      )}
+                                    </div>
+                                    <div className="flex justify-center w-full md:w-auto">
+                                      {embedVideoUrl ? (
+                                        <iframe
+                                          className="w-[360px] h-[640px] border rounded-3xl shadow-sm"
+                                          src={embedVideoUrl}
+                                          title="Deney Videosu"
+                                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                          allowFullScreen
+                                        ></iframe>
+                                      ) : (
+                                        <div className="w-[360px] h-[640px] border rounded-3xl shadow-sm flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-center p-4">
+                                          <p className="font-semibold">
+                                            Çok yakında eklenecektir. Lütfen beklemede kalın
+                                          </p>
                                         </div>
-                                        {fullText.length > 250 && (
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              setReadMore(!readMore);
-                                            }}
-                                            className="mt-2 text-orange-600 font-semibold hover:text-orange-700 active:text-orange-800"
-                                          >
-                                            {readMore ? "Kapat" : "Devamını Oku"}
-                                          </button>
-                                        )}
-                                      </div>
-                                      <div className="flex justify-center w-full md:w-auto">
-                                        {embedVideoUrl ? (
-                                          <iframe
-                                            className="w-[360px] h-[640px] border rounded-3xl shadow-sm"
-                                            src={embedVideoUrl}
-                                            title="Deney Videosu"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                          ></iframe>
-                                        ) : (
-                                          <div className="w-[360px] h-[640px] border rounded-3xl shadow-sm flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-center p-4">
-                                            <p className="font-semibold">
-                                              Çok yakında eklenecektir. Lütfen beklemede kalın
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
+                                      )}
                                     </div>
                                   </div>
-                                </td>
-                              </tr>
-                            )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })()}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
       </div>
     </>
   );
