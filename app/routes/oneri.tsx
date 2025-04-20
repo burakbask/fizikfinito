@@ -188,8 +188,8 @@ export default function MesajSayfasi() {
               <X className="h-5 w-5" />
             </button>
             <Atom className="mx-auto h-10 w-10 text-indigo-600 animate-pulse" />
-            <h2 className="mt-4 text-xl font-bold text-gray-900">Teşekkürler!</h2>
-            <p className="mt-2 text-gray-700">Geri bildiriminiz alındı.</p>
+            <h2 className="mt-4 text-xl font-bold text-gray-900">Çok Teşekkürler!</h2>
+            <p className="mt-2 text-gray-700">Geri bildiriminiz alındı. Çok teşekkür ederiz. Her mesajı dikkatle okuyup değerlendiriyoruz. İyi bir gün geçirmenizi dilerim</p>
             <button
               onClick={closeModal}
               className="mt-6 px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition"

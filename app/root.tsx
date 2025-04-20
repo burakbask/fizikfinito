@@ -14,20 +14,12 @@ import "./tailwind.css";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
+  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
   {
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
-  {
-    rel: "icon",
-    type: "image/png",
-    href: "https://cdn.zeduva.com/2024/12/fizikfinitologo.png",
-  },
+  { rel: "icon", type: "image/png", href: "https://cdn.zeduva.com/2024/12/fizikfinitologo.png" },
 ];
 
 export const loader = async ({ request }: LoaderArgs) => {
@@ -38,36 +30,28 @@ export const loader = async ({ request }: LoaderArgs) => {
 export default function Root() {
   const { user } = useLoaderData<typeof loader>();
   const [mounted, setMounted] = useState(false);
-  // Dark mode varsayılan olarak aktif (true)
   const [darkMode, setDarkMode] = useState(true);
 
-  // Component mount olduktan sonra localStorage'dan darkMode değeri kontrol ediliyor
   useEffect(() => {
     setMounted(true);
-    const storedPreference = localStorage.getItem("darkMode");
-    // Eğer storedPreference "false" ise dark mode devre dışı bırakılıyor
-    if (storedPreference === "false") {
+    const stored = localStorage.getItem("darkMode");
+    if (stored === "false") {
       setDarkMode(false);
       document.documentElement.classList.remove("dark");
     }
   }, []);
 
-  // Dark mode state değiştiğinde, localStorage ve html element güncelleniyor
   useEffect(() => {
     if (mounted) {
       localStorage.setItem("darkMode", darkMode.toString());
-      if (darkMode) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      if (darkMode) document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
     }
   }, [darkMode, mounted]);
 
   return (
     <html lang="en">
       <head>
-        {/* Pre-hydration Script: İlk yüklemede dark mode tercihini kontrol eder */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -88,11 +72,11 @@ export default function Root() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"
-          content="Fizikfinito - Fizik eğitim videoları, kitaplar ve daha fazlası ile fiziği eğlenceli hale getiriyoruz. Fizik derslerini keşfedin ve öğrenmenin keyfini çıkarın."
+          content="Fizikfinito - Fizik eğitim videoları, kitaplar ve daha fazlası ile fiziği eğlenceli hale getiriyoruz."
         />
         <meta
           name="keywords"
-          content="Fizikfinito, fizik, fizik eğitimi, fizik kitapları, TYT, AYT, lise fiziği, üniversite sınavı, bilim, fizik dersleri"
+          content="Fizikfinito, fizik, eğitim, kitap, TYT, AYT"
         />
         <meta name="author" content="Fizikfinito" />
         <Meta />
@@ -101,8 +85,8 @@ export default function Root() {
       <body className="flex flex-col min-h-screen bg-white dark:bg-gray-900 dark:text-white">
         <header>
           <nav className="bg-white dark:bg-gray-800 p-4 shadow-md">
-            <div className="container mx-auto flex items-center justify-between">
-              <Link to="/" className="flex items-center">
+            <div className="container mx-auto flex items-center justify-between flex-wrap">
+              <Link to="/" prefetch="render" className="flex items-center mb-2 sm:mb-0">
                 <img
                   src="https://cdn.zeduva.com/2024/12/fizikfinitologo.png"
                   alt="Fizikfinito Logo"
@@ -112,21 +96,37 @@ export default function Root() {
                   Fizikfinito
                 </span>
               </Link>
-              {/* Dark Mode Toggle Butonu */}
+
+              {/* Navigasyon Butonları */}
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-2 sm:mb-0">
+                <Link
+                  to="/"
+                  prefetch="render"
+                  className="px-3 sm:px-4 py-2 bg-blue-100 dark:bg-gray-700 text-gray-900 dark:text-white font-bold rounded-lg hover:bg-blue-200 dark:hover:bg-gray-600 transition text-sm sm:text-base"
+                >
+                  Ana Sayfa
+                </Link>
+                <Link
+                  to="/oneri"
+                  prefetch="intent"
+                  className="px-3 sm:px-4 py-2 bg-blue-100 dark:bg-gray-700 text-gray-900 dark:text-white font-bold rounded-lg hover:bg-blue-200 dark:hover:bg-gray-600 transition text-sm sm:text-base"
+                >
+                  Öneriniz mi var?
+                </Link>
+              </div>
+
               {mounted && (
                 <button
                   onClick={() => setDarkMode(!darkMode)}
                   className="focus:outline-none"
                 >
                   {darkMode ? (
-                    // Dark mod açıksa, Light Mode ikonu göster
                     <img
                       src="/light-mode.png"
                       alt="Light Mode"
                       className="h-6 w-6"
                     />
                   ) : (
-                    // Dark mod kapalıyken, Dark Mode ikonu göster
                     <img
                       src="/dark-mode.png"
                       alt="Dark Mode"
@@ -151,7 +151,7 @@ export default function Root() {
                   >
                     <img
                       src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
-                      alt="Instagram Fizikfinito"
+                      alt="Instagram"
                       className="h-8 w-8"
                     />
                   </a>
@@ -165,7 +165,7 @@ export default function Root() {
                   >
                     <img
                       src="https://cdn-icons-png.flaticon.com/512/5968/5968830.png"
-                      alt="Twitter Fizikfinito"
+                      alt="Twitter"
                       className="h-8 w-8"
                     />
                   </a>
@@ -179,7 +179,7 @@ export default function Root() {
                   >
                     <img
                       src="https://cdn-icons-png.flaticon.com/512/2504/2504942.png"
-                      alt="TikTok Fizikfinito"
+                      alt="TikTok"
                       className="h-8 w-8"
                     />
                   </a>
@@ -193,8 +193,7 @@ export default function Root() {
         </div>
         <footer className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-6 text-center mt-auto w-full">
           <p>
-            BETA versiyon &copy;2024 Fizikfinito - Tüm Hakları Saklıdır. Görüş ve
-            tavsiyeleriniz için: fizikfinito@zeduva.com
+            BETA versiyon ©2024 Fizikfinito - Tüm Hakları Saklıdır.
           </p>
         </footer>
         <ScrollRestoration />

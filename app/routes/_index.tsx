@@ -1,4 +1,4 @@
-// app/routes/$.tsx
+// app/routes/_index.tsx
 import type { LoaderFunction, MetaFunction, LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import React, { useState, useEffect, useRef } from "react";
