@@ -1,15 +1,10 @@
-// app/routes/$.tsx
+// app/routes/oneri.tsx
 import type { ActionFunction, MetaFunction, LinksFunction } from "@remix-run/node";
-import { json, createCookie } from "@remix-run/node";
-import React from "react";
+import { json } from "@remix-run/node";
+import React, { useEffect, useState } from "react";
 import { Form, useActionData } from "@remix-run/react";
-import { Lightbulb, User, Mail, MessageCircle } from "lucide-react";
+import { Atom, User, Mail, MessageCircle, X } from "lucide-react";
 import { addItem } from "~/utils/directusClient";
-
-// Çerez tanımı: 1 yıl süreli, commentCount adında
-const commentCookie = createCookie("commentCount", {
-  maxAge: 60 * 60 * 24 * 365,
-});
 
 // Sayfa meta bilgileri
 export const meta: MetaFunction = () => [
@@ -19,24 +14,11 @@ export const meta: MetaFunction = () => [
 
 // SEO için canonical link
 export const links: LinksFunction = () => [
-  { rel: "canonical", href: "https://www.fizikfinito.com/" },
+  { rel: "canonical", href: "https://www.fizikfinito.com/oneri" },
 ];
 
 // Action: Form gönderildiğinde yeni öneri oluşturup Directus'a kaydet
 export const action: ActionFunction = async ({ request }) => {
-  // Çerezden mevcut sayıyı al
-  const cookieHeader = request.headers.get("Cookie");
-  const cookie = await commentCookie.parse(cookieHeader);
-  const currentCount = Number(cookie) || 0;
-
-  // 5'ten fazla yükleme engelle
-  if (currentCount >= 5) {
-    return json(
-      { error: "En fazla 5 kez mesaj gönderebilirsiniz." },
-      { status: 400 }
-    );
-  }
-
   try {
     const form = await request.formData();
     const name = form.get("name");
@@ -56,26 +38,49 @@ export const action: ActionFunction = async ({ request }) => {
     if (typeof email === "string" && email.trim()) payload.email = email.trim();
 
     await addItem("oneri", payload);
-
-    // Yeni çerez değeri
-    const newCount = currentCount + 1;
-    const setCookieHeader = await commentCookie.serialize(String(newCount));
-
-    return json(
-      { success: true },
-      { headers: { "Set-Cookie": setCookieHeader } }
-    );
+    return json({ success: true });
   } catch (error) {
-    return json(
-      { error: (error as Error).message },
-      { status: 500 }
-    );
+    return json({ error: (error as Error).message }, { status: 500 });
   }
 };
 
-// React bileşeni: Gelişmiş buton stili ve varsayılan seçim
+// React bileşeni: Güzel bir modal popup ve spam önleme
 export default function MesajSayfasi() {
   const actionData = useActionData();
+  const [showModal, setShowModal] = useState(false);
+
+  // Modal açma on success
+  useEffect(() => {
+    if (actionData?.success) {
+      setShowModal(true);
+    }
+  }, [actionData]);
+
+  // Gönderim öncesi kontrol: günlük 5 gönderim
+  const handleSubmit = (e: React.FormEvent) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const stored = JSON.parse(localStorage.getItem("oneriCount") || "{}");
+    let { date, count } = stored || {};
+    if (date !== today) {
+      date = today;
+      count = 0;
+    }
+    if ((count || 0) >= 5) {
+      e.preventDefault();
+      alert("Bugün en fazla 5 kez mesaj gönderebilirsiniz.");
+      return;
+    }
+    localStorage.setItem(
+      "oneriCount",
+      JSON.stringify({ date, count: (count || 0) + 1 })
+    );
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    window.location.reload();
+  };
+
   const roles = [
     { value: 'ogrenci', label: 'Öğrenci' },
     { value: 'ogretmen', label: 'Öğretmen' },
@@ -91,14 +96,14 @@ export default function MesajSayfasi() {
       <div className="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 lg:p-12">
         <div className="flex justify-center">
           <div className="p-3 bg-indigo-100 rounded-full animate-pulse">
-            <Lightbulb className="h-8 w-8 text-indigo-600" />
+            <Atom className="h-8 w-8 text-indigo-600" />
           </div>
         </div>
         <h1 className="mt-4 text-center text-3xl font-extrabold text-gray-900">Öneri & Geri Bildirim</h1>
         <p className="mt-2 text-center text-gray-600">Fikirlerinizi paylaşarak bize ilham verin!</p>
 
-        <Form method="post" className="mt-6 space-y-6">
-          {/* Role as toggle buttons */}
+        <Form method="post" onSubmit={handleSubmit} className="mt-6 space-y-6">
+          {/* Rol seçim butonları */}
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium text-gray-700">Rolünüz <span className="text-red-500">*</span></legend>
             <div className="flex space-x-4 justify-center mt-2">
@@ -120,7 +125,7 @@ export default function MesajSayfasi() {
             </div>
           </fieldset>
 
-          {/* Name & Email */}
+          {/* İsim ve E-posta */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="relative">
               <label htmlFor="name" className="sr-only">Adınız</label>
@@ -134,7 +139,7 @@ export default function MesajSayfasi() {
               />
             </div>
             <div className="relative">
-              <label htmlFor="email" className="sr-only">Mailiniz()</label>
+              <label htmlFor="email" className="sr-only">Mailiniz</label>
               <Mail className="absolute left-3 top-3 h-5 w-5 text-indigo-400" />
               <input
                 type="email"
@@ -146,7 +151,7 @@ export default function MesajSayfasi() {
             </div>
           </div>
 
-          {/* Message */}
+          {/* Mesaj alanı */}
           <div className="relative">
             <label htmlFor="message" className="sr-only">Mesajınız</label>
             <MessageCircle className="absolute left-3 top-3 h-5 w-5 text-indigo-400" />
@@ -155,7 +160,7 @@ export default function MesajSayfasi() {
               id="message"
               rows={4}
               placeholder="Mesajınızı buraya yazın..."
-              className="pl-10 pt-3 w-full p-3 border-2 border-indigo-300 bg-indigo-50 text-gray-900 rounded-2xl shadow-inner focus:outline-none focus:border-indigo-500 transition resize-none"
+              className="pl-10 pt-3 w-full p-3	border-2 border-indigo-300 bg-indigo-50 text-gray-900 rounded-2xl shadow-inner focus:outline-none focus:border-indigo-500 transition resize-none"
               required
             />
           </div>
@@ -164,14 +169,36 @@ export default function MesajSayfasi() {
             type="submit"
             className="w-full flex justify-center items-center space-x-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-2xl shadow-lg transform hover:scale-105 transition"
           >
-            <Lightbulb className="h-5 w-5 animate-bounce" />
+            <Atom className="h-5 w-5 animate-bounce" />
             <span>Gönder ve Destek Ol</span>
           </button>
         </Form>
 
         {actionData?.error && <p className="mt-4 text-center text-red-600">{actionData.error}</p>}
-        {actionData?.success && <p className="mt-4 text-center text-green-600">Teşekkürler! Öneriniz alındı.</p>}
       </div>
+
+      {/* Modal Popup */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-xl p-8 max-w-xs text-center relative">
+            <button
+              onClick={closeModal}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <Atom className="mx-auto h-10 w-10 text-indigo-600 animate-pulse" />
+            <h2 className="mt-4 text-xl font-bold text-gray-900">Teşekkürler!</h2>
+            <p className="mt-2 text-gray-700">Geri bildiriminiz alındı.</p>
+            <button
+              onClick={closeModal}
+              className="mt-6 px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition"
+            >
+              Kapat
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
