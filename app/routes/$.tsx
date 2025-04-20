@@ -1,4 +1,4 @@
-// app/routes/$.tsx
+// app/routes/_index.tsx
 import type { LoaderFunction, MetaFunction, LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import React, { useState, useEffect, useRef } from "react";
@@ -146,9 +146,9 @@ export default function ExperimentPage() {
           ak.kategori === selectedCategoryId
       ) || null
     : null;
-  const [selectedAltKategori, setSelectedAltKategori] = useState<
-    Alt_Kategoriler | null
-  >(defaultAltKategori || filteredAltKategoriler[0] || null);
+  const [selectedAltKategori, setSelectedAltKategori] = useState<Alt_Kategoriler | null>(
+    defaultAltKategori || filteredAltKategoriler[0] || null
+  );
 
   // Seçili konu (topic)
   const [selectedTopic, setSelectedTopic] = useState<string | null>(
@@ -178,11 +178,53 @@ export default function ExperimentPage() {
     if (!hasInteracted) setHasInteracted(true);
   };
 
+  // Click handler'lar (toggle deaktif özelliği eklendi)
+  const handleCategoryClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    cat: string
+  ) => {
+    e.preventDefault();
+    onUserInteraction();
+    // Aynı kategoriye yeniden tıklanırsa "Tüm Kategoriler"e dön
+    setSelectedCategoryId(prev => prev === cat ? "Tüm Kategoriler" : cat);
+  };
+
+  const handleAltKategoriClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    alt: Alt_Kategoriler
+  ) => {
+    e.preventDefault();
+    onUserInteraction();
+    // Aynı alt kategoriye yeniden tıklanırsa null yap
+    setSelectedAltKategori(prev =>
+      prev?.altkategoriler === alt.altkategoriler ? null : alt
+    );
+  };
+
+  const handleTopicClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    konuAdi: string
+  ) => {
+    e.preventDefault();
+    onUserInteraction();
+    // Aynı konuya yeniden tıklanırsa null yap
+    setSelectedTopic(prev => (prev === konuAdi ? null : konuAdi));
+  };
+
+  const handleDeneyClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    deney: Deneyler
+  ) => {
+    e.preventDefault();
+    onUserInteraction();
+    setSelectedExperiment(
+      selectedExperiment?.deney_adi === deney.deney_adi ? null : deney
+    );
+  };
+
   // Kategori seçimi değiştiğinde alt kategori ve diğerleri sıfırlansın
   useEffect(() => {
-    setSelectedAltKategori(
-      filteredAltKategoriler[0] || null
-    );
+    setSelectedAltKategori(filteredAltKategoriler[0] || null);
     setSelectedTopic(null);
     setSelectedExperiment(null);
   }, [selectedCategoryId]);
@@ -234,45 +276,6 @@ export default function ExperimentPage() {
     if (!hasInteracted) return;
     experimentDetailsRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedExperiment, hasInteracted]);
-
-  // Click handler'lar
-  const handleCategoryClick = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    cat: string
-  ) => {
-    e.preventDefault();
-    onUserInteraction();
-    setSelectedCategoryId(cat);
-  };
-
-  const handleAltKategoriClick = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    alt: Alt_Kategoriler
-  ) => {
-    e.preventDefault();
-    onUserInteraction();
-    setSelectedAltKategori(alt);
-  };
-
-  const handleTopicClick = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    konuAdi: string
-  ) => {
-    e.preventDefault();
-    onUserInteraction();
-    setSelectedTopic(konuAdi);
-  };
-
-  const handleDeneyClick = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    deney: Deneyler
-  ) => {
-    e.preventDefault();
-    onUserInteraction();
-    setSelectedExperiment(
-      selectedExperiment?.deney_adi === deney.deney_adi ? null : deney
-    );
-  };
 
   // Deney veya malzeme metni
   let fullText = "";
@@ -343,7 +346,6 @@ export default function ExperimentPage() {
             ref={topicsRef}
             className="p-4 md:p-6 bg-white dark:bg-gray-900 shadow-sm rounded-3xl w-full max-w-5xl mt-4 overflow-x-auto"
           >
-            {/* Mevcut içeriği bozmuyor */}
             {kategoriler
               .filter((kat) => kat.kategoriler !== "Tüm Kategoriler")
               .map((mainCat) => {
@@ -677,8 +679,8 @@ export default function ExperimentPage() {
                                     />
                                   ) : (
                                     <div className="w-[360px] h-[640px] border rounded-3xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 p-4 text-center">
-                                      Çok yakında eklenecektir. Lütfen beklemede
-                                      kalın.
+                                      Çok yakında eklenecektir. Lütfen
+                                      beklemede kalın.
                                     </div>
                                   )}
                                 </div>
