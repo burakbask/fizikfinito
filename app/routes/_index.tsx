@@ -381,7 +381,7 @@ export default function ExperimentPage() {
                                         {topic.konu_adi}
                                       </td>
                                       <td className="border p-4">
-                                        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
                                           {exps.map((d) => (
                                             <button
                                               key={d.deney_adi}
@@ -585,7 +585,7 @@ export default function ExperimentPage() {
                         {selectedTopic}
                       </td>
                       <td className="border p-4">
-                        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
                           {deneyler
                             .filter((d) => d.konu_adi === selectedTopic)
                             .map((d) => (
