@@ -10,6 +10,8 @@ import {
 } from "@remix-run/react";
 import type { LinksFunction, LoaderArgs } from "@remix-run/node";
 import { authenticator } from "~/utils/auth.server";
+import { parse } from "cookie";
+import CookieConsent from "./components/CookieConsent"; // ①
 import "./tailwind.css";
 
 export const links: LinksFunction = () => [
@@ -22,13 +24,19 @@ export const links: LinksFunction = () => [
   { rel: "icon", type: "image/png", href: "https://cdn.zeduva.com/2024/12/fizikfinitologo.png" },
 ];
 
+// ② cookieHeader ve consent ekledik
 export const loader = async ({ request }: LoaderArgs) => {
   let user = await authenticator.isAuthenticated(request);
-  return { user };
+
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const cookies = parse(cookieHeader);
+  const consent = cookies.cookieConsent; // "accepted" | "declined" | undefined
+
+  return { user, consent };
 };
 
 export default function Root() {
-  const { user } = useLoaderData<typeof loader>();
+  const { user, consent } = useLoaderData<typeof loader>();
   const [mounted, setMounted] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
 
@@ -52,6 +60,10 @@ export default function Root() {
   return (
     <html lang="en">
       <head>
+        {/* ③ Onaylıysa analytics script’i */}
+        {consent === "accepted" && (
+          <script async src="https://www.googletagmanager.com/gtag/js?id=UA-XXXXX-X" />
+        )}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -97,7 +109,6 @@ export default function Root() {
                 </span>
               </Link>
 
-              {/* Navigasyon Butonları */}
               <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-2 sm:mb-0">
                 <Link
                   to="/"
@@ -196,9 +207,13 @@ export default function Root() {
             BETA versiyon ©2024 Fizikfinito - Tüm Hakları Saklıdır.
           </p>
         </footer>
+
+        {/* ④ Çerez onayı banner’ı */}
+        <CookieConsent />
+
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
-  );
+);
 }
