@@ -1,14 +1,20 @@
+// app/utils/session.server.ts
 import { createCookieSessionStorage } from "@remix-run/node";
 
-export let sessionStorage = createCookieSessionStorage({
+if (!process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET env değişkeni tanımlı olmalı");
+}
+
+export const sessionStorage = createCookieSessionStorage({
   cookie: {
-    name: "RJ_session",
+    name: "__session",
     secure: process.env.NODE_ENV === "production",
-    secrets: [process.env.SESSION_SECRET!],
+    secrets: [process.env.SESSION_SECRET],
     sameSite: "lax",
     path: "/",
     httpOnly: true,
+    // istekler arası sızıntıyı önlemek için httpOnly
   },
 });
 
-export let { getSession, commitSession, destroySession } = sessionStorage;
+export const { getSession, commitSession, destroySession } = sessionStorage;
