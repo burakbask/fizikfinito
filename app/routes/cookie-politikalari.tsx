@@ -75,7 +75,7 @@ export default function PrivacyAndSecurity() {
         </li>
 
         <li>
-          <strong>Bilgi ve İletişim:</strong> Gizlilik koşulları ile ilgili sorularınızı fizikfinito.com adresindeki "Bize Sorun" bölümünden iletebilirsiniz.
+          <strong>Bilgi ve İletişim:</strong> Gizlilik koşulları ile ilgili sorularınızı fizikfinito.com adresindeki "Öneriniz mi var?" bölümünden iletebilirsiniz.
         </li>
       </ol>
 
