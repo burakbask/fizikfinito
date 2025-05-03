@@ -88,6 +88,7 @@ export default function CookieConsent() {
           color: "#fff",
           padding: "16px",
           display: "flex",
+          flexWrap: "wrap",
           alignItems: "center",
           justifyContent: "space-between",
           zIndex: 10000,
@@ -95,7 +96,14 @@ export default function CookieConsent() {
           lineHeight: 1.5,
         }}
       >
-        <div style={{ flex: 1, paddingRight: "16px" }}>
+        <div
+          style={{
+            flex: "1 1 0%",
+            minWidth: 0,
+            paddingRight: "16px",
+            marginBottom: "8px",
+          }}
+        >
           Çerezler, içeriği ve reklamları kişiselleştirmek, sosyal medya özellikleri sağlamak
           ve trafiğimizi analiz etmek için kullanılmaktadır. “Kabul Et” seçeneği ile tüm
           çerezleri kabul edebilir veya “İzinleri Yönet” seçeneği ile ayarları düzenleyebilirsiniz.{" "}
@@ -106,7 +114,14 @@ export default function CookieConsent() {
             Çerez Politikası
           </a>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            marginBottom: "8px",
+          }}
+        >
           <button
             onClick={() => setShowSettings(true)}
             style={{
@@ -202,7 +217,7 @@ export default function CookieConsent() {
           </div>
 
           {/* Üst eylem butonları */}
-          <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
             <button
               onClick={acceptAll}
               style={{
