@@ -328,7 +328,7 @@ export default function ExperimentPage() {
                 <button
                   key={k.kategoriler}
                   onClick={(e) => handleCategoryClick(e, k.kategoriler)}
-                  className={`p-3 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                  className={`p-2 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
                     selectedCategoryId === k.kategoriler
                       ? "bg-orange-500 scale-110 text-white"
                       : "bg-orange-200 hover:bg-orange-300 active:bg-orange-400 text-orange-900"
@@ -388,7 +388,7 @@ export default function ExperimentPage() {
                                               onClick={(e) =>
                                                 handleDeneyClick(e, d)
                                               }
-                                              className={`p-2 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                                              className={`p-1 md:p-2 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
                                                 selectedExperiment?.deney_adi ===
                                                 d.deney_adi
                                                   ? "bg-fuchsia-500 scale-110 text-white"
@@ -426,7 +426,7 @@ export default function ExperimentPage() {
                                                           "experiment"
                                                         );
                                                       }}
-                                                      className={`p-3 rounded-lg transition-all duration-300 ${
+                                                      className={`p-2 md:p-3 rounded-lg transition-all duration-300 ${
                                                         contentType ===
                                                         "experiment"
                                                           ? "bg-fuchsia-500 scale-105 text-white"
@@ -443,7 +443,7 @@ export default function ExperimentPage() {
                                                           "materials"
                                                         );
                                                       }}
-                                                      className={`p-3 rounded-lg transition-all duration-300 ${
+                                                      className={`p-2 md:p-3 rounded-lg transition-all duration-300 ${
                                                         contentType ===
                                                         "materials"
                                                           ? "bg-rose-500 scale-105 text-white"
@@ -528,7 +528,7 @@ export default function ExperimentPage() {
                   <button
                     key={alt.altkategoriler}
                     onClick={(e) => handleAltKategoriClick(e, alt)}
-                    className={`p-3 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                    className={`p-2 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
                       selectedAltKategori?.altkategoriler === alt.altkategoriler
                         ? "bg-pink-500 scale-110 text-white"
                         : "bg-pink-200 hover:bg-pink-300 active:bg-pink-400 text-pink-900"
@@ -559,7 +559,7 @@ export default function ExperimentPage() {
                         onClick={(e) =>
                           handleTopicClick(e, topic.konu_adi)
                         }
-                        className={`p-3 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                        className={`p-2 md:p-4 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
                           selectedTopic === topic.konu_adi
                             ? "bg-amber-500 scale-110 text-white"
                             : "bg-amber-200 hover:bg-amber-300 active:bg-amber-400 text-amber-900"
@@ -581,9 +581,6 @@ export default function ExperimentPage() {
                 <table className="w-full border-collapse border border-gray-300 dark:border-gray-600 text-center rounded-xl overflow-hidden text-base dark:text-gray-100">
                   <tbody>
                     <tr className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
-                      <td className="border p-4 font-bold bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-700 dark:to-yellow-700 text-amber-800 dark:text-amber-300">
-                        {selectedTopic}
-                      </td>
                       <td className="border p-4">
                         <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
                           {deneyler
@@ -592,7 +589,7 @@ export default function ExperimentPage() {
                               <button
                                 key={d.deney_adi}
                                 onClick={(e) => handleDeneyClick(e, d)}
-                                className={`p-2 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                                className={`p-1 md:p-2 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
                                   selectedExperiment?.deney_adi ===
                                   d.deney_adi
                                     ? "bg-fuchsia-500 scale-110 text-white"
@@ -624,7 +621,7 @@ export default function ExperimentPage() {
                                         onUserInteraction();
                                         setContentType("experiment");
                                       }}
-                                      className={`p-3 rounded-lg transition-all duration-300 ${
+                                      className={`p-2 md:p-3 rounded-lg transition-all duration-300 ${
                                         contentType === "experiment"
                                           ? "bg-fuchsia-500 scale-105 text-white"
                                           : "bg-fuchsia-200 hover:bg-fuchsia-300 active:bg-fuchsia-400 text-fuchsia-900"
@@ -638,7 +635,7 @@ export default function ExperimentPage() {
                                         onUserInteraction();
                                         setContentType("materials");
                                       }}
-                                      className={`p-3 rounded-lg transition-all duration-300 ${
+                                      className={`p-2 md:p-3 rounded-lg transition-all duration-300 ${
                                         contentType === "materials"
                                           ? "bg-rose-500 scale-105 text-white"
                                           : "bg-rose-200 hover:bg-rose-300 active:bg-rose-400 text-rose-900"
@@ -649,11 +646,9 @@ export default function ExperimentPage() {
                                   </div>
                                   <div className="mt-4 font-bold text-lg text-left dark:text-gray-100">
                                     {contentType === "materials"
-                                      ? materialsDisplayText
-                                          .split("\n")
-                                          .map((line, idx) => (
-                                            <p key={idx}>• {line}</p>
-                                          ))
+                                      ? materialsDisplayText.split("\n").map((line, idx) => (
+                                          <p key={idx}>• {line}</p>
+                                        ))
                                       : displayText || "İçerik bulunamadı."}
                                   </div>
                                   {fullText.length > 250 && (
@@ -679,8 +674,7 @@ export default function ExperimentPage() {
                                     />
                                   ) : (
                                     <div className="w-[360px] h-[640px] border rounded-3xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 p-4 text-center">
-                                      Çok yakında eklenecektir. Lütfen
-                                      beklemede kalın.
+                                      Çok yakında eklenecektir. Lütfen beklemede kalın.
                                     </div>
                                   )}
                                 </div>

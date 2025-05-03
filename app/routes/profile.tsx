@@ -6,7 +6,7 @@ import { useState, useEffect }                from "react";
 import { authenticator }                      from "~/utils/auth.server";
 import { Mail, User as UserIcon }             from "lucide-react";
 import Swal                                    from "sweetalert2";
-import 'sweetalert2/dist/sweetalert2.min.css';  // global CSS import
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const API_URL = process.env.PUBLIC_DIRECTUS_API_URL!;
 const TOKEN   = process.env.PUBLIC_DIRECTUS_API_TOKEN!;
@@ -27,21 +27,17 @@ type LoaderData = {
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
-  // 1) Oturum doğrulama
   const sessionUser = await authenticator.isAuthenticated(request, {
     failureRedirect: "/login",
   });
 
-  // 2) Temel profil bilgilerini al
   const email     = sessionUser.email ?? sessionUser.emails?.[0]?.value ?? "";
   const firstName = sessionUser.firstName ?? sessionUser.name?.givenName ?? "";
   const lastName  = sessionUser.lastName  ?? sessionUser.name?.familyName ?? "";
-  // Google OAuth profil fotoğrafı
   const avatarUrl =
     (sessionUser.photos?.[0]?.value as string | undefined) ??
     (sessionUser._json?.picture  as string | undefined);
 
-  // 3) Directus’tan kullanıcı kaydını çek
   const res = await fetch(
     `${API_URL}/items/kullanicilar?filter[email][_eq]=${encodeURIComponent(email)}`,
     {
@@ -55,14 +51,11 @@ export const loader: LoaderFunction = async ({ request }) => {
     throw new Response("Directus’tan veri çekilemedi", { status: res.status });
   }
   const { data } = await res.json();
-  const record = data?.[0] ?? {};
+  const record   = data?.[0] ?? {};
 
-  // 4) Popup tetik için URL parametresi
   const url       = new URL(request.url);
   const showPopup = url.searchParams.get("saved") === "1";
-
-  // 5) Kilit kontrol: role dolu ise bir kez kaydetmiş demektir
-  const locked = Boolean(record.role);
+  const locked    = Boolean(record.role);
 
   return json<LoaderData>({
     user: {
@@ -81,20 +74,17 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export const action: ActionFunction = async ({ request }) => {
-  // 1) Oturum doğrulama
   const sessionUser = await authenticator.isAuthenticated(request, {
     failureRedirect: "/login",
   });
   const email = sessionUser.email ?? sessionUser.emails?.[0]?.value ?? "";
 
-  // 2) Form verisini al
   const formData = await request.formData();
   const role     = formData.get("role")  as string | null;
   const sinif    = formData.get("sinif") as string | null;
   const alan     = formData.get("alan")  as string | null;
   const brans    = formData.get("brans") as string | null;
 
-  // 3) Validasyon
   if (!role) {
     return json({ error: "Lütfen profil tipinizi seçin." }, { status: 400 });
   }
@@ -112,7 +102,6 @@ export const action: ActionFunction = async ({ request }) => {
     return json({ error: "Lütfen branşınızı girin." }, { status: 400 });
   }
 
-  // 4) Mevcut kayıt kontrolü
   const listRes = await fetch(
     `${API_URL}/items/kullanicilar?filter[email][_eq]=${encodeURIComponent(email)}`,
     {
@@ -124,26 +113,21 @@ export const action: ActionFunction = async ({ request }) => {
   );
   const { data } = await listRes.json();
 
-  // 5) Payload oluştur
   const payload: Record<string, any> = { role };
   if (role === "Öğrenci") {
     payload.sinif = sinif;
-    payload.alan  = ["9","10","11","12"].includes(sinif!)
-      ? alan
-      : null;
+    payload.alan  = ["9","10","11","12"].includes(sinif!) ? alan : null;
     payload.brans = null;
   } else if (role === "Öğretmen") {
     payload.brans = brans;
     payload.sinif = null;
     payload.alan  = null;
   } else {
-    // Ebeveyn
     payload.sinif = null;
     payload.alan  = null;
     payload.brans = null;
   }
 
-  // 6) Directus’a POST/PATCH
   if (data.length > 0) {
     await fetch(`${API_URL}/items/kullanicilar/${data[0].id}`, {
       method:  "PATCH",
@@ -164,7 +148,6 @@ export const action: ActionFunction = async ({ request }) => {
     });
   }
 
-  // 7) Kaydetme sonrası popup için yönlendir
   return redirect("/profile?saved=1");
 };
 
@@ -172,13 +155,11 @@ export default function ProfilePage() {
   const { user, showPopup, locked } = useLoaderData<LoaderData>();
   const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase();
 
-  // Form state
   const [role, setRole]   = useState(user.role);
   const [sinif, setSinif] = useState(user.sinif);
   const [alan, setAlan]   = useState(user.alan);
   const [brans, setBrans] = useState(user.brans);
 
-  // Popup’ı bir kez tetikle
   useEffect(() => {
     if (showPopup) {
       Swal.fire({
@@ -191,12 +172,13 @@ export default function ProfilePage() {
     }
   }, [showPopup]);
 
-  // Sınıf seçenekleri: önce 9–12, sonra 1–8
   const classOptions = [
-    { value: "9",  label: "9. Sınıf"  },
+    { value: "9",  label: "9. Sınıf" },
     { value: "10", label: "10. Sınıf" },
     { value: "11", label: "11. Sınıf" },
     { value: "12", label: "12. Sınıf" },
+    { value: "mezun", label: "Mezun" },
+    { value: "universite", label: "Üniversite Öğrencisi" },
     ...Array.from({ length: 8 }, (_, i) => ({
       value: String(i + 1),
       label: `${i + 1}. Sınıf`,
@@ -209,7 +191,6 @@ export default function ProfilePage() {
       <div className="w-full max-w-md bg-white dark:bg-gray-900
                       rounded-2xl shadow-2xl overflow-hidden">
         <div className="p-8 flex flex-col items-center">
-          {/* Profil Fotoğrafı */}
           {user.avatarUrl ? (
             <img
               src={user.avatarUrl}
@@ -234,7 +215,6 @@ export default function ProfilePage() {
             <span className="font-medium">{user.email}</span>
           </div>
 
-          {/* Profil Detayları Formu */}
           <div className="mt-6 w-full">
             <Form method="post" replace className="space-y-4">
               {/* Profil Tipi */}
@@ -248,8 +228,8 @@ export default function ProfilePage() {
                   className="mt-1 block w-full px-4 py-2
                              border border-gray-300 dark:border-gray-700
                              rounded-lg bg-gray-50 dark:bg-gray-800
-                             focus:outline-none focus:ring-2
-                             focus:ring-indigo-400"
+                             focus:outline-none focus:ring-2 focus:ring-indigo-400
+                             disabled:appearance-none"
                 >
                   <option value="">Seçiniz...</option>
                   <option>Öğrenci</option>
@@ -270,8 +250,8 @@ export default function ProfilePage() {
                     className="mt-1 block w-full px-4 py-2
                                border border-gray-300 dark:border-gray-700
                                rounded-lg bg-gray-50 dark:bg-gray-800
-                               focus:outline-none focus:ring-2
-                               focus:ring-indigo-400"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-400
+                               disabled:appearance-none"
                   >
                     <option value="">Seçiniz...</option>
                     {classOptions.map(c => (
@@ -295,8 +275,7 @@ export default function ProfilePage() {
                     className="mt-1 block w-full px-4 py-2
                                border border-gray-300 dark:border-gray-700
                                rounded-lg bg-gray-50 dark:bg-gray-800
-                               focus:outline-none focus:ring-2
-                               focus:ring-indigo-400"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   >
                     <option value="">Seçiniz...</option>
                     <option>Sayısal</option>
@@ -320,13 +299,11 @@ export default function ProfilePage() {
                     className="mt-1 block w-full px-4 py-2
                                border border-gray-300 dark:border-gray-700
                                rounded-lg bg-gray-50 dark:bg-gray-800
-                               focus:outline-none focus:ring-2
-                               focus:ring-indigo-400"
+                               focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   />
                 </label>
               )}
 
-              {/* Kaydet Butonu */}
               {!locked && (
                 <button
                   type="submit"
@@ -339,7 +316,6 @@ export default function ProfilePage() {
             </Form>
           </div>
 
-          {/* Çıkış */}
           <Form method="post" action="/logout" className="mt-4 w-full">
             <button
               type="submit"
