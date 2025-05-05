@@ -1,4 +1,18 @@
 // app/root.tsx
+
+// ——————————————————————————————————————————————————————
+// Global type augmentations
+// ——————————————————————————————————————————————————————
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
+
+// ——————————————————————————————————————————————————————
+// Imports
+// ——————————————————————————————————————————————————————
 import React, { useState, useEffect, useRef } from "react";
 import {
   Links,
@@ -10,30 +24,28 @@ import {
   useLoaderData,
   useLocation,
 } from "@remix-run/react";
-import type { LinksFunction, LoaderArgs } from "@remix-run/node";
+import type { LinksFunction } from "@remix-run/node";
 import { authenticator } from "~/utils/auth.server";
 import { parse } from "cookie";
 import CookieConsent from "./components/CookieConsent";
 import "./tailwind.css";
 
-export const links: LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-  { rel: "icon", type: "image/png", href: "https://cdn.zeduva.com/2024/12/fizikfinitologo.png" },
-];
-
-export const loader = async ({ request }: LoaderArgs) => {
-  const user = await authenticator.isAuthenticated(request);
+// ——————————————————————————————————————————————————————
+// Loader
+// ——————————————————————————————————————————————————————
+export const loader = async ({
+  request,
+}: any): Promise<{ user: any; consent?: string }> => {
+  const user = (await authenticator.isAuthenticated(request)) as any;
   const cookieHeader = request.headers.get("Cookie") || "";
   const cookies = parse(cookieHeader);
   const consent = cookies.cookieConsent;
   return { user, consent };
 };
 
+// ——————————————————————————————————————————————————————
+// Root component
+// ——————————————————————————————————————————————————————
 export default function Root() {
   const { user, consent } = useLoaderData<typeof loader>();
   const location = useLocation();
@@ -60,7 +72,7 @@ export default function Root() {
     }
   }, [darkMode, mounted]);
 
-  // 🔥 Click tracker: fire on every location change (except first load)
+  // Click tracker on route change (except first render)
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
@@ -76,42 +88,41 @@ export default function Root() {
     });
   }, [location]);
 
+  // Consent Mode: onay gelince analytics’i aç
+  useEffect(() => {
+    if (mounted && consent === "accepted") {
+      window.gtag?.("consent", "update", {
+        ad_storage: "granted",
+        analytics_storage: "granted",
+      });
+    }
+  }, [mounted, consent]);
+
   return (
     <html lang="en">
       <head>
-        {consent === "accepted" && (
-          <>
-            {/* Google tag (gtag.js) */}
-            <script async src="https://www.googletagmanager.com/gtag/js?id=G-4XTHE4ZKK5" />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-
-                  gtag('config', 'G-4XTHE4ZKK5');
-                `,
-              }}
-            />
-          </>
-        )}
+        {/* Google tag (gtag.js) */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-4XTHE4ZKK5"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              (function() {
-                try {
-                  var darkMode = localStorage.getItem("darkMode");
-                  if (darkMode === null || darkMode === "true") {
-                    document.documentElement.classList.add("dark");
-                  } else {
-                    document.documentElement.classList.remove("dark");
-                  }
-                } catch (e) {}
-              })();
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              // Başlangıçta çerez depolamasını reddet:
+              gtag('consent','default',{
+                'ad_storage':'denied',
+                'analytics_storage':'denied'
+              });
+              // GA4 yükle & config
+              gtag('js', new Date());
+              gtag('config', 'G-4XTHE4ZKK5');
             `,
           }}
         />
+
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
@@ -168,6 +179,7 @@ export default function Root() {
                     to="/profilim"
                     className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-100 dark:bg-green-700 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-green-200 dark:hover:bg-green-600 transition text-sm sm:text-base"
                   >
+                    {/* user.image ve user.name artık user: any olduğu için geçerli */}
                     {user.image && (
                       <img
                         src={user.image}
@@ -193,17 +205,9 @@ export default function Root() {
                     className="focus:outline-none"
                   >
                     {darkMode ? (
-                      <img
-                        src="/light-mode.png"
-                        alt="Light Mode"
-                        className="h-6 w-6"
-                      />
+                      <img src="/light-mode.png" alt="Light Mode" className="h-6 w-6" />
                     ) : (
-                      <img
-                        src="/dark-mode.png"
-                        alt="Dark Mode"
-                        className="h-6 w-6"
-                      />
+                      <img src="/dark-mode.png" alt="Dark Mode" className="h-6 w-6" />
                     )}
                   </button>
                 )}
@@ -275,3 +279,7 @@ export default function Root() {
     </html>
   );
 }
+
+// ——————————————————————————————————————————————————————
+// EOF
+// ——————————————————————————————————————————————————————
