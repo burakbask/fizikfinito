@@ -124,10 +124,10 @@ export default function Root() {
             __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
-              // Başlangıçta çerez depolamasını reddet:
+              // Başlangıçta çerez depolamasını izinli yap:
               gtag('consent','default',{
-                'ad_storage':'denied',
-                'analytics_storage':'denied'
+                'ad_storage':'granted',
+                'analytics_storage':'granted'
               });
               // GA4 yükle & config
               gtag('js', new Date());
