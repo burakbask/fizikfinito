@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// app/root.tsx
+import React, { useState, useEffect, useRef } from "react";
 import {
   Links,
   Meta,
@@ -38,7 +39,9 @@ export default function Root() {
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
+  const isFirstRender = useRef(true);
 
+  // Dark mode on load
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem("darkMode");
@@ -48,6 +51,7 @@ export default function Root() {
     }
   }, []);
 
+  // Dark mode toggle
   useEffect(() => {
     if (mounted) {
       localStorage.setItem("darkMode", darkMode.toString());
@@ -56,11 +60,41 @@ export default function Root() {
     }
   }, [darkMode, mounted]);
 
+  // 🔥 Click tracker: fire on every location change (except first load)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    fetch("/click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ link: location.pathname }),
+    }).catch((err) => {
+      console.error("Click tracker error:", err);
+    });
+  }, [location]);
+
   return (
     <html lang="en">
       <head>
         {consent === "accepted" && (
-          <script async src="https://www.googletagmanager.com/gtag/js?id=UA-XXXXX-X" />
+          <>
+            {/* Google tag (gtag.js) */}
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-4XTHE4ZKK5" />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+
+                  gtag('config', 'G-4XTHE4ZKK5');
+                `,
+              }}
+            />
+          </>
         )}
         <script
           dangerouslySetInnerHTML={{
@@ -131,7 +165,7 @@ export default function Root() {
               <div className="flex items-center space-x-2 mb-2 sm:mb-0">
                 {user ? (
                   <Link
-                    to="/profile"
+                    to="/profilim"
                     className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-100 dark:bg-green-700 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-green-200 dark:hover:bg-green-600 transition text-sm sm:text-base"
                   >
                     {user.image && (
