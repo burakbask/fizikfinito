@@ -20,7 +20,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
   // 3) Şartları kabul edip etmediğine göre yönlendir
   if (!user.termsAccepted) {
-    return redirect("/consent", { headers });
+    return redirect("/kvkk", { headers });
   }
-  return redirect("/profile", { headers });
+  return redirect("/profilim", { headers });
 };

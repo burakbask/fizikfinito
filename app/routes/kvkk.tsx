@@ -1,4 +1,4 @@
-// File: /app/routes/consent.tsx
+// File: /app/routes/kvkk.tsx
 import type { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
@@ -14,10 +14,10 @@ const headers = {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await authenticator.isAuthenticated(request, {
-    failureRedirect: "/login",
+    failureRedirect: "/giris-yap",
   });
   if (user.termsAccepted) {
-    return redirect("/profile");
+    return redirect("/profilim");
   }
   return json({ email: user.email });
 };
@@ -55,14 +55,14 @@ export const action: ActionFunction = async ({ request }) => {
     termsAccepted: true,
   });
 
-  return redirect("/profile", {
+  return redirect("/profilim", {
     headers: {
       "Set-Cookie": await sessionStorage.commitSession(session),
     },
   });
 };
 
-export default function Consent() {
+export default function Kvkk() {
   const { email }   = useLoaderData<{ email: string }>();
   const actionData  = useActionData<{ formError?: string }>();
 
@@ -72,7 +72,7 @@ export default function Consent() {
         /* Genel sıfırlama */
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
         /* Arka plan, üstten alta doğru mor-mavi gradyan */
-        .consent-bg {
+        .kvkk-bg {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -81,7 +81,7 @@ export default function Consent() {
           padding: 2rem;
         }
         /* Kart stili */
-        .consent-card {
+        .kvkk-card {
           background: #0c111f;
           border-radius: 16px;
           box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -90,31 +90,31 @@ export default function Consent() {
           padding: 2.5rem;
           color: #f1f1f5;
         }
-        .consent-header {
+        .kvkk-header {
           font-size: 1.75rem;
           font-weight: 700;
           margin-bottom: 0.5rem;
           text-align: center;
         }
-        .consent-info {
+        .kvkk-info {
           font-size: 1rem;
           color: #cfd2d9;
           line-height: 1.6;
           margin-bottom: 1.5rem;
           text-align: center;
         }
-        .consent-error {
+        .kvkk-error {
           font-size: 0.9rem;
           color: #ff6b6b;
           text-align: center;
           margin-bottom: 1rem;
         }
-        .consent-form {
+        .kvkk-form {
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
         }
-        .consent-label {
+        .kvkk-label {
           display: flex;
           align-items: flex-start;
           gap: 0.75rem;
@@ -123,13 +123,13 @@ export default function Consent() {
           cursor: pointer;
           user-select: none;
         }
-        .consent-label input {
+        .kvkk-label input {
           margin-top: 4px;
           width: 18px;
           height: 18px;
           accent-color: #8A63D1;
         }
-        .consent-button {
+        .kvkk-button {
           align-self: center;
           width: 90%;
           max-width: 320px;
@@ -143,32 +143,32 @@ export default function Consent() {
           cursor: pointer;
           transition: background 0.2s ease, transform 0.1s ease;
         }
-        .consent-button:hover {
+        .kvkk-button:hover {
           background: #6E56CF;
           transform: translateY(-2px);
         }
       `}</style>
 
-      <div className="consent-bg">
-        <div className="consent-card">
-          <h1 className="consent-header">Son Bir Adım!</h1>
-          <p className="consent-info">
+      <div className="kvkk-bg">
+        <div className="kvkk-card">
+          <h1 className="kvkk-header">Son Bir Adım!</h1>
+          <p className="kvkk-info">
             <strong>{email}</strong> hesabınla devam etmek için lütfen aşağıdaki metni
             okuyup onayla:
           </p>
 
           {actionData?.formError && (
-            <div className="consent-error">{actionData.formError}</div>
+            <div className="kvkk-error">{actionData.formError}</div>
           )}
 
-          <Form method="post" className="consent-form">
-            <label className="consent-label">
+          <Form method="post" className="kvkk-form">
+            <label className="kvkk-label">
               <input type="checkbox" name="consent" />
               KVKK Açık Rıza Metni, Kullanıcı Sözleşmesi,<br/>
               KVKK Aydınlatma Metni ve Çerez Aydınlatma Metnini<br/>
               okudum ve kabul ediyorum.
             </label>
-            <button type="submit" className="consent-button">
+            <button type="submit" className="kvkk-button">
               Onayla ve Devam Et
             </button>
           </Form>

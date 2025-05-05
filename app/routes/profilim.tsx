@@ -28,7 +28,7 @@ type LoaderData = {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const sessionUser = await authenticator.isAuthenticated(request, {
-    failureRedirect: "/login",
+    failureRedirect: "/giris-yap",
   });
 
   const email     = sessionUser.email ?? sessionUser.emails?.[0]?.value ?? "";
@@ -75,7 +75,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export const action: ActionFunction = async ({ request }) => {
   const sessionUser = await authenticator.isAuthenticated(request, {
-    failureRedirect: "/login",
+    failureRedirect: "/giris-yap",
   });
   const email = sessionUser.email ?? sessionUser.emails?.[0]?.value ?? "";
 
@@ -148,7 +148,7 @@ export const action: ActionFunction = async ({ request }) => {
     });
   }
 
-  return redirect("/profile?saved=1");
+  return redirect("/profilim?saved=1");
 };
 
 export default function ProfilePage() {
@@ -316,7 +316,7 @@ export default function ProfilePage() {
             </Form>
           </div>
 
-          <Form method="post" action="/logout" className="mt-4 w-full">
+          <Form method="post" action="/cikis-yap" className="mt-4 w-full">
             <button
               type="submit"
               className="w-full py-2 bg-red-500 hover:bg-red-600
