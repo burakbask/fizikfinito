@@ -6,14 +6,16 @@ import { useLoaderData, useLocation } from "@remix-run/react";
 import { getCollectionItems } from "~/utils/directusClient";
 
 // Kategoriler koleksiyonundan gelen obje tipi
-type Kategoriler = { 
-  kategoriler: string; 
+type Kategoriler = {
+  kategoriler: string;
+  siralama: number;
 };
 
 // Alt_Kategoriler koleksiyonundan gelen obje tipi
 type Alt_Kategoriler = { 
   altkategoriler: string;
   kategori: string; 
+  siralama: number;
 };
 
 // Konular koleksiyonundan gelen obje tipi
@@ -52,7 +54,9 @@ export const loader: LoaderFunction = async () => {
   const deneyler = (dRes.data || dRes) as Deneyler[];
 
   // "Tüm Kategoriler" başlığını en başa ekliyoruz
-  kategoriler.unshift({ kategoriler: "Tüm Kategoriler" });
+  kategoriler.sort((a, b) => a.siralama - b.siralama);
+  altKategoriler.sort((a, b) => a.siralama - b.siralama);
+  kategoriler.unshift({ kategoriler: "Tüm Kategoriler", siralama: 0 });
 
   return json<LoaderData>({ kategoriler, altKategoriler, konular, deneyler });
 };

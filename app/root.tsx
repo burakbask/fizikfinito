@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
   Link,
   useLoaderData,
+  useLocation,
 } from "@remix-run/react";
 import type { LinksFunction, LoaderArgs } from "@remix-run/node";
 import { authenticator } from "~/utils/auth.server";
@@ -34,6 +35,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 
 export default function Root() {
   const { user, consent } = useLoaderData<typeof loader>();
+  const location = useLocation();
   const [mounted, setMounted] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
 
@@ -110,6 +112,7 @@ export default function Root() {
               <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-2 sm:mb-0">
                 <Link
                   to="/"
+                  state={{ reset: Date.now() }}
                   prefetch="render"
                   className="px-3 sm:px-4 py-2 bg-blue-100 dark:bg-gray-700 text-gray-900 dark:text-white font-bold rounded-lg hover:bg-blue-200 dark:hover:bg-gray-600 transition text-sm sm:text-base"
                 >
@@ -223,7 +226,7 @@ export default function Root() {
             </ul>
           </aside>
           <main className="p-2 md:p-8 flex-1 w-full max-w-7xl mx-auto">
-            <Outlet />
+            <Outlet key={location.key} />
           </main>
         </div>
 

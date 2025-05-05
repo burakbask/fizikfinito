@@ -170,7 +170,7 @@ export default function MesajSayfasi() {
   // Modal kapatma
   const closeModal = () => {
     setShowModal(false);
-    window.location.reload();
+    window.location.href = "/";
   };
 
   const roles = [
@@ -245,7 +245,7 @@ export default function MesajSayfasi() {
                 type="email"
                 name="email"
                 id="email"
-                placeholder="Email (İsteğe bağlı"
+                placeholder="Email (İsteğe bağlı)"
                 defaultValue={user?.email || ""}
                 className="pl-10 w-full p-3 border-2 border-indigo-300 bg-indigo-50 text-gray-900 rounded-2xl shadow-inner focus:outline-none focus:border-indigo-500 transition"
               />
