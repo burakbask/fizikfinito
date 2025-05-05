@@ -10,9 +10,6 @@ declare global {
   }
 }
 
-// ——————————————————————————————————————————————————————
-// Imports
-// ——————————————————————————————————————————————————————
 import React, { useState, useEffect, useRef } from "react";
 import {
   Links,
@@ -29,6 +26,22 @@ import { authenticator } from "~/utils/auth.server";
 import { parse } from "cookie";
 import CookieConsent from "./components/CookieConsent";
 import "./tailwind.css";
+
+// ——————————————————————————————————————————————————————
+// Links (favicon güncellendi)
+// ——————————————————————————————————————————————————————
+export const links: LinksFunction = () => [
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+  },
+  // Favicon
+  { rel: "icon", type: "image/png", href: "https://cdn.zeduva.com/2024/12/fizikfinitologo.png" },
+  // Tarayıcı uyumluluğu için shortcut icon
+  { rel: "shortcut icon", href: "https://cdn.zeduva.com/2024/12/fizikfinitologo.png" },
+];
 
 // ——————————————————————————————————————————————————————
 // Loader
@@ -179,7 +192,6 @@ export default function Root() {
                     to="/profilim"
                     className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-100 dark:bg-green-700 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-green-200 dark:hover:bg-green-600 transition text-sm sm:text-base"
                   >
-                    {/* user.image ve user.name artık user: any olduğu için geçerli */}
                     {user.image && (
                       <img
                         src={user.image}
@@ -279,7 +291,3 @@ export default function Root() {
     </html>
   );
 }
-
-// ——————————————————————————————————————————————————————
-// EOF
-// ——————————————————————————————————————————————————————
