@@ -281,7 +281,7 @@ export default function Root() {
         </div>
 
         <footer className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-6 text-center mt-auto w-full">
-          <p>BETA versiyon ©2024 Fizikfinito - Tüm Hakları Saklıdır.</p>
+          <p>BETA versiyon ©2025 Fizikfinito - Tüm Hakları Saklıdır.</p>
         </footer>
 
         <CookieConsent />
